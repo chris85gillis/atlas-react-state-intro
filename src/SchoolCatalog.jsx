@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 
 export default function SchoolCatalog() {
   const [courses, setCourses] = useState([]);
-  const [sortConfig, setSortConfig] = useState({ key: '', direction: '' });
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 5;
 
   useEffect(() => {
     // Fetch data from the API
@@ -12,36 +13,22 @@ export default function SchoolCatalog() {
       .catch((error) => console.error('Error fetching data:', error));
   }, []);
 
-  const sortedCourses = [...courses];
+  const indexOfLastRow = currentPage * rowsPerPage;
+  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
+  const currentRows = courses.slice(indexOfFirstRow, indexOfLastRow);
 
-  if (sortConfig.key) {
-    sortedCourses.sort((a, b) => {
-      const aValue = a[sortConfig.key];
-      const bValue = b[sortConfig.key];
+  const totalPages = Math.ceil(courses.length / rowsPerPage);
 
-      if (aValue < bValue) {
-        return sortConfig.direction === 'ascending' ? -1 : 1;
-      }
-      if (aValue > bValue) {
-        return sortConfig.direction === 'ascending' ? 1 : -1;
-      }
-      return 0;
-    });
-  }
-
-  const requestSort = (key) => {
-    let direction = 'ascending';
-    if (sortConfig.key === key && sortConfig.direction === 'ascending') {
-      direction = 'descending';
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
     }
-    setSortConfig({ key, direction });
   };
 
-  const getSortIndicator = (key) => {
-    if (sortConfig.key === key) {
-      return sortConfig.direction === 'ascending' ? ' 🔼' : ' 🔽';
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
     }
-    return null;
   };
 
   return (
@@ -51,26 +38,16 @@ export default function SchoolCatalog() {
       <table>
         <thead>
           <tr>
-            <th onClick={() => requestSort('trimester')}>
-              Trimester{getSortIndicator('trimester')}
-            </th>
-            <th onClick={() => requestSort('courseNumber')}>
-              Course Number{getSortIndicator('courseNumber')}
-            </th>
-            <th onClick={() => requestSort('courseName')}>
-              Course Name{getSortIndicator('courseName')}
-            </th>
-            <th onClick={() => requestSort('semesterCredits')}>
-              Semester Credits{getSortIndicator('semesterCredits')}
-            </th>
-            <th onClick={() => requestSort('totalClockHours')}>
-              Total Clock Hours{getSortIndicator('totalClockHours')}
-            </th>
+            <th>Trimester</th>
+            <th>Course Number</th>
+            <th>Course Name</th>
+            <th>Semester Credits</th>
+            <th>Total Clock Hours</th>
             <th>Enroll</th>
           </tr>
         </thead>
         <tbody>
-          {sortedCourses.map((course, index) => (
+          {currentRows.map((course, index) => (
             <tr key={index}>
               <td>{course.trimester}</td>
               <td>{course.courseNumber}</td>
@@ -85,8 +62,16 @@ export default function SchoolCatalog() {
         </tbody>
       </table>
       <div className="pagination">
-        <button>Previous</button>
-        <button>Next</button>
+        <button 
+          onClick={handlePreviousPage} 
+          disabled={currentPage === 1}>
+          Previous
+        </button>
+        <button 
+          onClick={handleNextPage} 
+          disabled={currentPage === totalPages}>
+          Next
+        </button>
       </div>
     </div>
   );
