@@ -41,7 +41,7 @@ export default function SchoolCatalog() {
 
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value);
-    setCurrentPage(1); // Reset to first page on search
+    setCurrentPage(1);
   };
 
   const handleSort = (column) => {
